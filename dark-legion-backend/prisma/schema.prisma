@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  crystal   Int         @default(0)
+  party     Party?
+  inventory Inventory[]
+  battles   BattleLog[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Party {
+  id     String @id @default(cuid())
+  userId String @unique
+  /// Inventory.id[]를 그대로 저장
+  slots  Json
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Unit {  // 카탈로그
+  id        String   @id                    // 예: "skel_soldier", "orc_brute", "royal_archer"
+  name      String
+  emoji     String
+  tribe     String                           // 예: "언데드" | "야수" | "악마" | "인간"
+  role      String                           // 예: "탱커" | "딜러" | "마법사"
+  rarity    Int
+  img       String                           // 예: "/units/skel_soldier.png"
+  hpMax     Int
+  atk       Int
+  speed     Int
+  /// 프론트 BLUEPRINTS와 맞추기 위한 선택 필드(적 유닛은 비울 수 있음)
+  ultName   String?
+  ultDesc   String?
+
+  isPlayable Boolean  @default(true)
+  createdAt DateTime  @default(now())
+  inventory Inventory[]
+
+  @@index([rarity])
+  @@index([tribe])
+  @@index([role])
+}
+
+model Inventory { // 보유 유닛 인스턴스
+  id     String @id @default(cuid())
+  userId String
+  unitId String
+  level  Int    @default(1)
+
+  user   User   @relation(fields: [userId], references: [id])
+  unit   Unit   @relation(fields: [unitId], references: [id])
+
+  @@index([userId])
+  @@index([unitId])
+}
+
+model BattleLog {
+  id        String   @id @default(cuid())
+  userId    String
+  stageId   String
+  waveIdx   Int
+  result    String   // "WIN" | "LOSE"
+  drops     Json?
+  crystals  Int      @default(0) // 지급된 결정
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
