@@ -196,7 +196,7 @@ async function ensureDevUserAndParty() {
   const user = await prisma.user.upsert({
     where: { name: "dev" },
     update: {},
-    create: { name: "dev", crystal: 300 },
+    create: { name: "dev", crystal: 1000 },
   });
 
   // dev 인벤토리에 같은 유닛이 이미 있으면 재사용

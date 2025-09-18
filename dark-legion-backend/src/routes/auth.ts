@@ -17,7 +17,7 @@ router.post("/login", async (req, res) => {
   const user = await prisma.user.upsert({
     where: { name },
     update: {},
-    create: { name, crystal: 300 },
+    create: { name, crystal: 1000 },
   });
 
   res.json({ id: user.id, name: user.name, crystal: user.crystal });

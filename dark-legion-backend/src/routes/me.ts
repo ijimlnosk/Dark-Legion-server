@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { z } from "zod";
+import { getEffectiveStats } from "../lib/stats";
 
 const router = Router();
 
 router.get("/state", async (req, res) => {
+  // @ts-expect-error 커스텀 미들웨어에서 userId를 주입한다고 가정
   const userId = req.userId!;
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -18,26 +20,33 @@ router.get("/state", async (req, res) => {
   res.json({
     crystal: user.crystal,
     party: (user.party?.slots as string[]) ?? [],
-    collection: user.inventory.map((i) => ({
-      id: i.unitId,
-      name: i.unit.name,
-      emoji: i.unit.emoji,
-      tribe: i.unit.tribe,
-      role: i.unit.role,
-      rarity: i.unit.rarity,
-      img: i.unit.img,
-      hpMax: i.unit.hpMax,
-      atk: i.unit.atk,
-      speed: i.unit.speed,
-      ultName: i.unit.ultName ?? null,
-      ultDesc: i.unit.ultDesc ?? null,
-      inventoryId: i.id,
-      level: i.level,
-    })),
+    collection: user.inventory.map((i) => {
+      const effective = getEffectiveStats(
+        { hpMax: i.unit.hpMax, atk: i.unit.atk, speed: i.unit.speed },
+        i.level
+      );
+      return {
+        id: i.unitId,
+        name: i.unit.name,
+        emoji: i.unit.emoji,
+        tribe: i.unit.tribe,
+        role: i.unit.role,
+        rarity: i.unit.rarity,
+        img: i.unit.img,
+        hpMax: effective.hpMax,
+        atk: effective.atk,
+        speed: effective.speed,
+        ultName: i.unit.ultName ?? null,
+        ultDesc: i.unit.ultDesc ?? null,
+        inventoryId: i.id,
+        level: i.level,
+      };
+    }),
   });
 });
 
 router.put("/party", async (req, res) => {
+  // @ts-expect-error 커스텀 미들웨어에서 userId를 주입한다고 가정
   const userId = req.userId!;
   const body = z.object({ slots: z.array(z.string()).max(3) }).parse(req.body);
 
@@ -58,6 +67,7 @@ router.put("/party", async (req, res) => {
 });
 
 router.put("/crystal", async (req, res) => {
+  // @ts-expect-error 커스텀 미들웨어에서 userId를 주입한다고 가정
   const userId = req.userId!;
   const { delta } = z.object({ delta: z.number().int() }).parse(req.body);
   const updated = await prisma.user.update({

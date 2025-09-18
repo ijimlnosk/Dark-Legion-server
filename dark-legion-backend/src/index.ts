@@ -9,7 +9,9 @@ import catalogRouter from "./routes/catalog";
 import meRouter from "./routes/me";
 import summonRouter from "./routes/summon";
 import battlesRouter from "./routes/battles";
+import manualBattlesRouter from "./routes/battles.manual";
 import unitsRouter from "./routes/units";
+import fusionRouter from "./routes/fusion";
 
 const app = express();
 app.use(express.json());
@@ -36,7 +38,9 @@ app.use(devAuth);
 app.use("/me", meRouter);
 app.use("/summon", summonRouter);
 app.use("/battles", battlesRouter);
+app.use("/battles", manualBattlesRouter);
 app.use("/units", unitsRouter);
+app.use("/fusion", fusionRouter);
 
 const port = Number(process.env.PORT ?? 4000);
 app.listen(port, () =>

@@ -78,7 +78,7 @@ async function upsertDevUserWithStarterParty() {
   const user = await prisma.user.upsert({
     where: { name: "dev" },
     update: {},
-    create: { name: "dev", crystal: 300 },
+    create: { name: "dev", crystal: 1000 },
   });
 
   // dev 계정 스타터 유닛
@@ -86,7 +86,7 @@ async function upsertDevUserWithStarterParty() {
     data: { userId: user.id, unitId: "skel_soldier" },
   });
   const inv2 = await prisma.inventory.create({
-    data: { userId: user.id, unitId: "orc_brute" },
+    data: { userId: user.id, unitId: "dread_knight" },
   });
 
   await prisma.party.upsert({
